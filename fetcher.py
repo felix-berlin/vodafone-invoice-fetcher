@@ -11,10 +11,13 @@ import argparse
 parser = argparse.ArgumentParser(description='Fetch the Vodafone bills.')
 
 # Add the arguments
+parser.add_argument('--mode', type=str, default="last", help='The mode to fetch the bills. Options: last, all')
 parser.add_argument('--username', type=str, required=True, help='The username')
 parser.add_argument('--password', type=str, required=True, help='The password')
 parser.add_argument('--secret_key', type=str, required=False, help='The 2FA secret key')
 parser.add_argument('--download_path', type=str, default="./downloads", help='The download path for the invoices')
+parser.add_argument('--login_url', type=str, default="https://www.vodafone.de/meinvodafone/account/login", help='Vodafone login URL')
+parser.add_argument('--invoice_overview_url', type=str, default="https://www.vodafone.de/meinvodafone/services/ihre-rechnungen/rechnungen", help='Vodafone invoice overview URL')
 
 # Parse the arguments
 args = parser.parse_args()
@@ -28,10 +31,8 @@ chrome_options.add_experimental_option('prefs',  {
 driver = webdriver.Chrome(options=chrome_options)
 
 def initVodafoneInvoiceFetcher(username, password, secret_key):
-    # Define the URL for the login request
-    login_url = 'https://www.vodafone.de/meinvodafone/account/login'
-
-    driver.get(login_url)
+    # Open the login page
+    driver.get(args.login_url)
 
     # Wait for the cookie consent banner and accept it
     cookie_consent_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'dip-consent-summary-reject-all')))
@@ -65,18 +66,22 @@ def initVodafoneInvoiceFetcher(username, password, secret_key):
 
     time.sleep(10)
 
-    # Navigate to the other page
-    driver.get('https://www.vodafone.de/meinvodafone/services/ihre-rechnungen/rechnungen')
+    # Navigate to the invoice overview page
+    driver.get(args.invoice_overview_url)
 
     time.sleep(10)
 
     # Get all the download buttons
     download_buttons = driver.find_elements(By.CSS_SELECTOR, 'svg[automation-id="table_2_svg"]')
-    print(download_buttons)
-    for button in download_buttons:
-        button.click()
-        time.sleep(2)  # Add a delay between downloads to avoid overwhelming the server
 
-    time.sleep(60)
+    if args.mode == "last":
+        download_buttons[0].click()
+        time.sleep(2)  # Add a delay to allow the download to start
+
+    if args.mode == "all":
+
+      for button in download_buttons:
+          button.click()
+          time.sleep(2)  # Add a delay between downloads to avoid overwhelming the server
 
 initVodafoneInvoiceFetcher(args.username, args.password, args.secret_key)
