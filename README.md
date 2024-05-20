@@ -17,9 +17,10 @@ You can run the script from the command line with the following arguments:
 - `--username`: Your Vodafone username. This argument is required.
 - `--password`: Your Vodafone password. This argument is required.
 - `--secret_key`: Your 2FA secret key. This argument is optional.
-- `--download_path`: The path where the invoices will be downloaded. Default is `./downloads`.
+- `--download_path`: The path where the invoices will be downloaded.
 - `--login_url`: The Vodafone login URL. Default is `https://www.vodafone.de/meinvodafone/account/login`.
 - `--invoice_overview_url`: The Vodafone invoice overview URL. Default is `https://www.vodafone.de/meinvodafone/services/ihre-rechnungen/rechnungen`.
+- `--remote_url`: The URL of the remote Selenium server. This argument is optional.
 
 Here's an example of how to run the script:
 
