@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(description='Fetch the Vodafone bills.')
 # Add the arguments
 parser.add_argument('--username', type=str, required=True, help='The username')
 parser.add_argument('--password', type=str, required=True, help='The password')
-parser.add_argument('--secret_key', type=str, required=True, help='The 2FA secret key')
+parser.add_argument('--secret_key', type=str, required=False, help='The 2FA secret key')
 parser.add_argument('--download_path', type=str, default="./downloads", help='The download path for the invoices')
 
 # Parse the arguments
@@ -21,7 +21,6 @@ args = parser.parse_args()
 
 # Initialize a WebDriver instance
 chrome_options = Options()
-chrome_options.add_argument("--headless=new")
 chrome_options.add_experimental_option('prefs',  {
     "download.default_directory": args.download_path, # Change this to your download directory
 })
@@ -42,21 +41,27 @@ def initVodafoneInvoiceFetcher(username, password, secret_key):
     username_field = WebDriverWait(driver, 2).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'input#txtUsername')))
     password_field = WebDriverWait(driver, 2).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'input#txtPassword')))
 
+    # Fill in the username and password
     username_field.send_keys(username)
     password_field.send_keys(password)
 
+    # Click the login button
     login_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'login-btn')))
     login_button.click()
 
-    totp_field = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'input#totpcontrol')))
+    if secret_key:
+      totp_field = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'input#totpcontrol')))
 
-    totp = pyotp.TOTP(secret_key)
-    totp_code = totp.now()
-    totp_field.send_keys(totp_code)
+      # Generate the TOTP code
+      totp = pyotp.TOTP(secret_key)
+      totp_code = totp.now()
 
-    time.sleep(2)
-    login_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'login-btn')))
-    login_button.click()
+      # Fill in the TOTP code
+      totp_field.send_keys(totp_code)
+
+      # Click the login button
+      login_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'login-btn')))
+      login_button.click()
 
     time.sleep(10)
 
